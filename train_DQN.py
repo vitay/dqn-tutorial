@@ -3,6 +3,9 @@ import math
 import random
 import os
 import time
+import yaml
+import argparse
+
 import numpy as np
 rng = np.random.default_rng()
 import matplotlib.pyplot as plt
@@ -15,6 +18,10 @@ print("gym version:", gym.__version__)
 # pytorch
 import torch
 import torch.nn.functional as F
+
+# mlflow
+import mlflow
+print("mlflow version:", mlflow.__version__)
 
 # Select hardware: 
 if torch.cuda.is_available(): # GPU
@@ -217,35 +224,36 @@ class DQNAgent:
                 if done:
                     self.episode_durations.append(steps_episode)
                     print(f"Episode {i_episode+1}, duration {steps_episode}, epsilon {self.epsilon:.4f} done in {time.time() - tstart}")
+                    mlflow.log_metric("episode_duration", steps_episode, step=i_episode) 
 
 
 def main():
-    # Hyperparameters
-    config = {}
-    config['nb_hidden'] = 128 # number of hidden neurons in each layer
-    config['batch_size'] = 128 # number of transitions sampled from the replay buffer
-    config['gamma'] = 0.99 # discount factor
-    config['eps_start'] = 0.9 # starting value of epsilon
-    config['eps_end'] = 0.05 # final value of epsilon
-    config['eps_decay'] = 1000 # rate of exponential decay of epsilon, higher means a slower decay
-    config['learning_rate'] = 1e-3 # learning rate of the optimizer
-    config['target_update_period'] = 120 # update period (in steps) of the target network
-    config['buffer_limit'] = 10000 # maximum number of transitions in the replay buffer
+    
+    # Default hyperparameters
+    with open("config.yaml", "r") as f:
+        config = yaml.safe_load(f)
+
 
     # Create the environment
     env = gym.make('CartPole-v0')
 
-    # Create the agent
-    agent = DQNAgent(env, config)
+    # MLflow tracking
+    mlflow.set_experiment("DQN_training")
+    with mlflow.start_run():
+        mlflow.log_params(config)
 
-    # Train the agent
-    agent.train(num_episodes=250)
+        # Create the agent
+        agent = DQNAgent(env, config)
 
-    plt.figure(figsize=(10, 6))
-    plt.plot(agent.episode_durations)
-    plt.xlabel("Episodes")
-    plt.ylabel("Returns")
-    plt.show()
+        # Train the agent
+        agent.train(num_episodes=250)
+
+        plt.figure(figsize=(10, 6))
+        plt.plot(agent.episode_durations)
+        plt.xlabel("Episodes")
+        plt.ylabel("Returns")
+        plt.savefig("episode_durations.png")
+        mlflow.log_artifact("episode_durations.png")
 
 
 if __name__ == "__main__":
