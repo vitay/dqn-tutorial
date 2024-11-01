@@ -1,0 +1,9 @@
+nb_hidden : 32 # number of hidden neurons in each layer
+batch_size : 128 # number of transitions sampled from the replay buffer
+gamma : 0.99 # discount factor
+eps_start : 0.9 # starting value of epsilon
+eps_end : 0.05 # final value of epsilon
+eps_decay : 1000 # rate of exponential decay of epsilon, higher means a slower decay
+learning_rate : 0.001 # learning rate of the optimizer
+target_update_period : 120 # update period (in steps) of the target network
+buffer_limit : 10000 # maximum number of transitions in the replay buffer
