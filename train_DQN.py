@@ -19,9 +19,9 @@ print("gym version:", gym.__version__)
 import torch
 import torch.nn.functional as F
 
-# mlflow
-import mlflow
-print("mlflow version:", mlflow.__version__)
+# wandb
+import wandb
+print("wandb version:", wandb.__version__)
 
 # Select hardware: 
 if torch.cuda.is_available(): # GPU
@@ -224,7 +224,7 @@ class DQNAgent:
                 if done:
                     self.episode_durations.append(steps_episode)
                     print(f"Episode {i_episode+1}, duration {steps_episode}, epsilon {self.epsilon:.4f} done in {time.time() - tstart}")
-                    mlflow.log_metric("episode_duration", steps_episode, step=i_episode) 
+                    wandb.log({"return": steps_episode})
 
 
 def main():
@@ -237,23 +237,22 @@ def main():
     # Create the environment
     env = gym.make('CartPole-v0')
 
-    # MLflow tracking
-    mlflow.set_experiment("DQN_training")
-    with mlflow.start_run():
-        mlflow.log_params(config)
+    # wandb tracking
+    run = wandb.init(project="DQN-CartPole", config=config)
 
-        # Create the agent
-        agent = DQNAgent(env, config)
+    # Create the agent
+    agent = DQNAgent(env, config)
 
-        # Train the agent
-        agent.train(num_episodes=250)
+    # Train the agent
+    agent.train(num_episodes=250)
 
-        plt.figure(figsize=(10, 6))
-        plt.plot(agent.episode_durations)
-        plt.xlabel("Episodes")
-        plt.ylabel("Returns")
-        plt.savefig("episode_durations.png")
-        mlflow.log_artifact("episode_durations.png")
+    plt.figure(figsize=(10, 6))
+    plt.plot(agent.episode_durations)
+    plt.xlabel("Episodes")
+    plt.ylabel("Returns")
+    plt.savefig("episode_durations.png")
+    
+    wandb.log_artifact("episode_durations.png")
 
 
 if __name__ == "__main__":
