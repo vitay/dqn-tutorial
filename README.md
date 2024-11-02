@@ -19,3 +19,14 @@ Otherwise, `pip install -e .` should install everything you need in your virtual
 * torch>=2.5.1
 * wandb>=0.18.5
 
+## Usage
+
+Everything is in the `train_DQN.py` script. 
+
+```python
+python train_DQN.py
+```
+
+The hyperparameters are in the `config.yaml` file.
+
+Progress is tracked using Weights & Biases <https://wandb.ai/>.
